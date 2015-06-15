@@ -7,6 +7,7 @@ open import Data.Nat
 open import Data.Product renaming (_×_ to _∧_)
 open import Data.Sum renaming (_⊎_ to _∨_)
 open import Relation.Nullary.Core
+open import Relation.Binary.Core renaming (_≡_ to _==_)
 
 data Term : Set where
   tmtrue : Term
@@ -54,11 +55,14 @@ data s : ℕ → Term → Set where
 
 
 data S : Term → Set where 
-  --S1' : ∀ {t n} → t ∈ s n → t ∈ S
-  S1 : ∀ {n} → s n ⊆ S
+  SS : ∀ {n} → s n ⊆ S
 
 LemmaSubset : Set
 LemmaSubset = ∀ {n} → (s n) ⊆ (s (suc n))
+
+lemmaSubset : LemmaSubset
+lemmaSubset {n} = {!!}  
+
 
 
 
@@ -73,13 +77,7 @@ lemmaEqual : LemmaEqual
 lemmaEqual = aux1 , aux2
   where 
     aux1 : Tau ⊆ S
-    aux1 t11 = S1 s11
-    aux1 t12 = S1 s12
-    aux1 t13 = S1 s13
-    aux1 (t21 x) = {!S1 s21 !}
-    aux1 (t22 x) = {!!}
-    aux1 (t23 x) = {!!}
-    aux1 (t3 x) = {!!}
+    aux1 = {!!}
     aux2 : S ⊆ Tau
     aux2 = {!!}
 
@@ -116,6 +114,13 @@ data A : ℕ → Set where
   a1 : 1 ∈ A
   a2 : 2 ∈ A
 
+data B : ℕ → Set where
+  b2 : 2 ∈ B
+
+data Even : ℕ → Set where
+  e0 : 0 ∈ Even
+  ess : ∀ {n} → n ∈ Even → suc (suc n) ∈ Even 
+
 Lemma01 : Set
 Lemma01 = 0 ∈ A
 
@@ -137,4 +142,9 @@ lemma03 : Lemma03
 lemma03 ()
 
 Lemma04 : Set
-Lemma04 = ¬ (N ⊆ A)
+Lemma04 = ¬ N ⊆ A
+
+--lemma04 : Lemma04
+
+
+
