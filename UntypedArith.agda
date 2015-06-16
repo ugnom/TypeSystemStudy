@@ -21,28 +21,13 @@ data Term : Set where
 
 
 data Tau : Term → Set where
-  t11 : tmtrue ∈ Tau 
+  t11 : tmtrue ∈ Tau
   t12 : tmfalse ∈ Tau
   t13 : tmzero ∈ Tau
-  t21 : {t₁ : Term} → t₁ ∈ Tau → tmsucc t₁ ∈ Tau
-  t22 : {t₁ : Term} → t₁ ∈ Tau → tmpred t₁ ∈ Tau
-  t23 : {t₁ : Term} → t₁ ∈ Tau → tmiszero t₁ ∈ Tau
-  t3 : {t₁ t₂ t₃ : Term} → (t₁ ∈ Tau) ∧ (t₂ ∈ Tau) ∧ (t₃ ∈ Tau) → tmif t₁ then t₂ else t₃ ∈ Tau
-
-{--
-s : ℕ → Term → Set
-s 0 = ∅
-s (suc n) = defineS
-  where 
-    defineS : Term → Set
-    defineS tmtrue = ⊤
-    defineS tmfalse = ⊤
-    defineS tmzero = ⊤
-    defineS (tmsucc x) = (s n) x
-    defineS (tmpred x) = (s n) x
-    defineS (tmif x then y else z) = ((s n) x) ∧ ((s n) y) ∧ ((s n) z) 
-    defineS _ = ⊥
---}
+  t21 : ∀{t₁ : Term} → t₁ ∈ Tau → tmsucc t₁ ∈ Tau
+  t22 : ∀{t₁ : Term} → t₁ ∈ Tau → tmpred t₁ ∈ Tau
+  t23 : ∀{t₁ : Term} → t₁ ∈ Tau → tmiszero t₁ ∈ Tau
+  t3 : ∀{t₁ t₂ t₃ : Term} → (t₁ ∈ Tau) ∧ (t₂ ∈ Tau) ∧ (t₃ ∈ Tau) → tmif t₁ then t₂ else t₃ ∈ Tau
 
 data s : ℕ → Term → Set where
   s11 : ∀ {n} → tmtrue ∈ s (suc n)
@@ -53,23 +38,80 @@ data s : ℕ → Term → Set where
   s23 : ∀ {t n} → t ∈ s n → tmiszero t ∈ s (suc n)
   s3 : ∀ {t₁ t₂ t₃ n} → (t₁ ∈ s n) ∧ (t₂ ∈ s n) ∧ (t₃ ∈ s n) → tmif t₁ then t₂ else t₃ ∈ s (suc n)
 
-
 data S : Term → Set where 
   SS : ∀ {n} → s n ⊆ S
+
+-------------------------------------------------------------------------------------------------------------------
+--3.2.4 Number of elements of (s 3)
+
+_^_ : ℕ → ℕ → ℕ
+x ^ 0 = 1
+x ^ (suc n) = x * (x ^ n)
+
+calculateElemNum : ℕ → ℕ
+calculateElemNum 0 = 0
+calculateElemNum (suc n) = 3 + (calculateElemNum n) * 3 + (calculateElemNum n) ^ 3 
+
+-------------------------------------------------------------------------------------------------------------------
+--3.2.5 Proof (s i) is accumlative. (s n) ⊆ (s (suc n))
 
 LemmaSubset : Set
 LemmaSubset = ∀ {n} → (s n) ⊆ (s (suc n))
 
 lemmaSubset : LemmaSubset
-lemmaSubset {n} = {!!}  
+lemmaSubset {zero} () 
+lemmaSubset {suc n} s11 = s11
+lemmaSubset {suc n} s12 = s12
+lemmaSubset {suc n} s13 = s13
+lemmaSubset {suc n} (s21 x) = s21 (lemmaSubset {n} x)
+lemmaSubset {suc n} (s22 x) = s22 (lemmaSubset {n} x)
+lemmaSubset {suc n} (s23 x) = s23 (lemmaSubset {n} x)
+lemmaSubset {suc n} (s3 x) = s3 (  lemmaSubset {n} (proj₁ x) ,
+                                                           lemmaSubset {n} (proj₁ (proj₂  x)) , 
+                                                           lemmaSubset {n}  (proj₂ (proj₂ x) )  )
 
-
-
-
+-------------------------------------------------------------------------------------------------------------------
+--3.2.6 Tau ≡ S
 
 _≡_  :  ∀ {ℓ₁ ℓ₂} {a} {A : Set a} → Pred A ℓ₁ → Pred A ℓ₂ → Set _ 
 P ≡ Q = (P ⊆ Q) ∧ (Q ⊆ P) 
-  
+ 
+LemmaA10 : Set
+LemmaA10 = ∀{n t} → t ∈ (s n) → t ∈ S
+
+lemmaA10 : LemmaA10
+lemmaA10 = SS
+
+LemmaA11 : Set
+LemmaA11 = ∀{t} → t ∈ S → ∃ λ n → t ∈ (s n)
+
+lemmaA11 : LemmaA11
+lemmaA11 (SS {suc n} s11) = suc n , s11
+lemmaA11 (SS {suc n} s12) = suc n , s12
+lemmaA11 (SS {suc n} s13) = suc n , s13
+lemmaA11 (SS {suc n} (s21 x)) = suc n , s21 x
+lemmaA11 (SS {suc n} (s22 x)) = suc n , s22 x
+lemmaA11 (SS {suc n} (s23 x)) = suc n , s23 x
+lemmaA11 (SS {suc n} (s3 x)) = suc n , s3 x
+
+LemmaA112 : Set
+LemmaA112 = ∀{t} → t ∈ S → (tmsucc t) ∈ S
+
+lemmaA112 : LemmaA112 
+lemmaA112 {t} x = {!!}
+
+LemmaA12 : Set
+LemmaA12 = ∀ {t} → t ∈ Tau → ∃ λ n → t ∈ (s n)
+
+lemmaA12 : LemmaA12
+lemmaA12 t11 = {!!}
+lemmaA12 t12 = {!!}
+lemmaA12 t13 = {!!}
+lemmaA12 (t21 x) = {!!}
+lemmaA12 (t22 x) = {!!}
+lemmaA12 (t23 x) = {!!}
+lemmaA12 (t3 x) = {!!}
+
 LemmaEqual : Set
 LemmaEqual = Tau ≡ S
 
@@ -77,74 +119,10 @@ lemmaEqual : LemmaEqual
 lemmaEqual = aux1 , aux2
   where 
     aux1 : Tau ⊆ S
-    aux1 = {!!}
+    aux1 x = SS {!LemmaA12 x!}
     aux2 : S ⊆ Tau
     aux2 = {!!}
 
-Lemma1 : Set
-Lemma1 = tmtrue ∈ Tau
-
-lemma1 : Lemma1
-lemma1 = t11
-
-Lemma2 : Set
-Lemma2 = (tmsucc tmzero) ∈ Tau
-
-lemma2 : Lemma2 
-lemma2 = t21 t13
-
-Lemma3 : Set
-Lemma3 = wrong ∉ Tau
-
-lemma3 : Lemma3
-lemma3 ()
-
-Lemma4 : Set
-Lemma4 = (tmsucc wrong) ∉ Tau
-
-lemma4 : Lemma4
-lemma4 (t21 ())
-
-
-data N : ℕ → Set where 
-  nn : ∀ {n : ℕ} → n ∈ N
-
-data A : ℕ → Set where
-  a0 : 0 ∈ A
-  a1 : 1 ∈ A
-  a2 : 2 ∈ A
-
-data B : ℕ → Set where
-  b2 : 2 ∈ B
-
-data Even : ℕ → Set where
-  e0 : 0 ∈ Even
-  ess : ∀ {n} → n ∈ Even → suc (suc n) ∈ Even 
-
-Lemma01 : Set
-Lemma01 = 0 ∈ A
-
-lemma01 : Lemma01
-lemma01 = a0
-
-Lemma02 : Set
-Lemma02 = A ⊆ N
-
-lemma02 : Lemma02
-lemma02 a0 = nn
-lemma02 a1 = nn
-lemma02 a2 = nn
-
-Lemma03 : Set
-Lemma03 = 3 ∉ A
-
-lemma03 : Lemma03
-lemma03 ()
-
-Lemma04 : Set
-Lemma04 = ¬ N ⊆ A
-
---lemma04 : Lemma04
 
 
 
