@@ -8,6 +8,11 @@ open import Data.Product renaming (_×_ to _∧_)
 open import Data.Sum renaming (_⊎_ to _∨_)
 open import Relation.Nullary.Core
 open import Relation.Binary.Core renaming (_≡_ to _==_)
+open import Data.List
+
+-------------------------------------------------------------------------------------------------------------------
+--3.  Untyped Arithmetic Expressions
+--3.1. Introduction 
 
 data Term : Set where
   tmtrue : Term
@@ -19,6 +24,8 @@ data Term : Set where
   tmiszero : Term → Term
   wrong : Term
 
+--3.2. Sentence Constructure
+--Definition 3.2.1. Inductive Term Definition 
 
 data Tau : Term → Set where
   t11 : tmtrue ∈ Tau
@@ -28,6 +35,8 @@ data Tau : Term → Set where
   t22 : ∀{t₁ : Term} → t₁ ∈ Tau → tmpred t₁ ∈ Tau
   t23 : ∀{t₁ : Term} → t₁ ∈ Tau → tmiszero t₁ ∈ Tau
   t3 : ∀{t₁ t₂ t₃ : Term} → (t₁ ∈ Tau) ∧ (t₂ ∈ Tau) ∧ (t₃ ∈ Tau) → tmif t₁ then t₂ else t₃ ∈ Tau
+
+--Definition 3.2.3. Concrete Term Definition
 
 data s : ℕ → Term → Set where
   s11 : ∀ {n} → tmtrue ∈ s (suc n)
@@ -42,7 +51,7 @@ data S : Term → Set where
   SS : ∀ {n} → s n ⊆ S
 
 -------------------------------------------------------------------------------------------------------------------
---3.2.4 Number of elements of (s 3)
+--Exercise 3.2.4. Number of elements of (s 3)
 
 _^_ : ℕ → ℕ → ℕ
 x ^ 0 = 1
@@ -53,7 +62,7 @@ calculateElemNum 0 = 0
 calculateElemNum (suc n) = 3 + (calculateElemNum n) * 3 + (calculateElemNum n) ^ 3 
 
 -------------------------------------------------------------------------------------------------------------------
---3.2.5 Proof (s i) is accumlative. (s n) ⊆ (s (suc n))
+--Exercise 3.2.5. Proof (s i) is accumlative. (s n) ⊆ (s (suc n))
 
 LemmaSubset : Set
 LemmaSubset = ∀ {n} → (s n) ⊆ (s (suc n))
@@ -71,7 +80,7 @@ lemmaSubset {suc n} (s3 x) = s3 (  lemmaSubset {n} (proj₁ x) ,
                                                            lemmaSubset {n}  (proj₂ (proj₂ x) )  )
 
 -------------------------------------------------------------------------------------------------------------------
---3.2.6 Tau ≡ S
+--Proposition 3.2.6. Tau ≡ S
 
 _≡_  :  ∀ {ℓ₁ ℓ₂} {a} {A : Set a} → Pred A ℓ₁ → Pred A ℓ₂ → Set _ 
 P ≡ Q = (P ⊆ Q) ∧ (Q ⊆ P) 
@@ -96,7 +105,7 @@ lemmaA11 (SS {suc n} (s3 x)) = suc n , s3 x
 
 LemmaA112 : Set
 LemmaA112 = ∀{t} → t ∈ S → (tmsucc t) ∈ S
-
+{--
 lemmaA112 : LemmaA112 
 lemmaA112 {t} x = {!!}
 
@@ -122,7 +131,71 @@ lemmaEqual = aux1 , aux2
     aux1 x = SS {!LemmaA12 x!}
     aux2 : S ⊆ Tau
     aux2 = {!!}
+--}
+-------------------------------------------------------------------------------------------------------------------
+--3.3. Induction related to Terms
+
+--Definition 3.3.1. Consts(t) - A set of values which appears in term t
+data Consts : (Term) → (Term → Set) where
+  constsTrue : tmtrue ∈ Consts(tmtrue)
+  constsFalse : tmfalse ∈ Consts(tmfalse)
+  constsZero : tmzero ∈ Consts(tmzero)
+  constsSucc : ∀{t u : Term} → t ∈ Consts u → t ∈ Consts (tmsucc u)
+  constsPred : ∀ {t u : Term} → t ∈ Consts u → t ∈ Consts (tmpred u)
+  constsIsZero : ∀ {t u : Term} → t ∈ Consts u →  t ∈ Consts (tmiszero u)
+  constsIf : ∀{t t1 t2 t3 : Term} → t ∈ ((Consts t1) ∪ Consts t2 ∪ Consts t3) → t ∈ Consts (tmif t1 then t2 else t3)
+
+Lemma331-1 : Set
+Lemma331-1 = tmtrue ∈ Consts tmtrue
+
+lemma331-1 : Lemma331-1
+lemma331-1 = constsTrue
+
+Lemma331-2 : Set
+Lemma331-2 = tmzero ∈ Consts (tmsucc tmzero)
+
+lemma331-2 : Lemma331-2
+lemma331-2 = constsSucc constsZero
+
+Lemma331-3 : Set
+Lemma331-3 = tmtrue ∉ Consts (tmsucc tmzero)
+
+lemma331-3 : Lemma331-3
+lemma331-3 (constsSucc ())
+
+Lemma331-4 : Set
+Lemma331-4 = (tmsucc tmzero) ∉ Consts (tmsucc tmzero)
+
+lemma331-4 : Lemma331-4
+lemma331-4 (constsSucc ())
+
+--Definition 3.3.2. size(t) , depth(t)
+size : Term → ℕ
+size tmtrue = 1
+size tmfalse = 1
+size tmzero = 1
+size (tmsucc t) = (size t) + 1
+size (tmpred t) = (size t) + 1
+size (tmiszero t) = (size t) + 1
+size (tmif t₁ then t₂ else t₃ ) = (size t₁) + (size t₂) + (size t₃) + 1
+size wrong = 0
 
 
+maximum : List ℕ → ℕ
+maximum [] = 0
+maximum (x ∷ [] ) = x
+maximum (x ∷ xs) = x ⊔ (maximum xs) 
 
+depth : Term → ℕ 
+depth tmtrue = 1
+depth tmfalse = 1
+depth tmzero = 1
+depth (tmsucc t1) = (depth t1) + 1
+depth (tmpred t1) = (depth t1) + 1
+depth (tmiszero t1) = (depth t1) + 1
+depth (tmif t₁ then t₂ else t₃) = maximum ((depth t₁) ∷  (depth t₂)  ∷ (depth t₃) ∷ [] ) + 1
+depth wrong = 0
 
+--Lemma 3.3.3. number of t's value is equal to or less than size of t
+--Lemma333 : Set
+--Lemma333 = 
