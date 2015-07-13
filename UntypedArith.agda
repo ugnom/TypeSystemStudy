@@ -1,4 +1,4 @@
-module UntypedArith where
+clmodule UntypedArith where
 
 open import Relation.Unary
 open import Data.Empty
