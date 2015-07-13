@@ -197,5 +197,11 @@ depth (tmif t₁ then t₂ else t₃) = maximum ((depth t₁) ∷  (depth t₂) 
 depth wrong = 0
 
 --Lemma 3.3.3. number of t's value is equal to or less than size of t
+
+sizeOfConsts : Term → ℕ
+sizeOfConsts = {!!}
+  where Term → List
+
 --Lemma333 : Set
 --Lemma333 = 
+
