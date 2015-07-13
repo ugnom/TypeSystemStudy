@@ -121,9 +121,12 @@ main :: IO ()
 main = do
 	putStr "Atith Expr >>"
 	str <- getLine
-	res <- return . eval . parse . words $ str
-	putStr res
-
+	case (parse . words) str of
+		Just x -> do 
+			res <- return . eval $ x
+			putStrLn . show $ res
+		Nothing -> 
+			putStrLn "Illegal String"
 
 test1 = "if iszero 0 then succ 0 else pred 0"
 test2 = "iszero if true then 0 else succ 0"
