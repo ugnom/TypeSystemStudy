@@ -10,10 +10,6 @@ data LamTerm a =  Var a
 -- |x.(z x) (|y.(w v) k)
 -- x y
 parse :: String -> Maybe (LamTerm String)
---parse ('(' : xs) + do
-parse ('(' : xs) = do 
-	res <- (parse . (trim "() ")) xs
-	return res
 parse ('|' : xs) = do
 	(x, abt, apt, rest) <- findAbs xs
 	if apt == [] then do 
@@ -42,14 +38,14 @@ findAbs xs = do
 	n <- return . (findIndexOf '.') $ xs
 	x <- (return . (take n)) xs
 	--nn <- return . findBlockEndIndex $ ((drop (n+1)) xs)
-	(abt, rest) <- return . getFirstBlock $ (drop (n+1) xs)
+	(abt, rest) <- getFirstBlock $ (drop (n+1) xs)
 	--abt <- return $ take nn ((drop (n+1)) xs)
 	--rest <- return $ drop (nn+ 2 + (length x)) xs
 	(apt, rest') <- findApAbs rest
 	return (x, abt, apt, rest')
 
 findVar :: String -> Maybe (String, String)
-findVar = return . getFirstBlock
+findVar = getFirstBlock
 --findVar xs = do
 	--n <- return . (findIndexOf ' ') $  xs
 	--x <- return $ take n xs
@@ -57,7 +53,7 @@ findVar = return . getFirstBlock
 	--return (x , rest)
 
 findApAbs :: String -> Maybe (String, String)
-findApAbs = return . getFirstBlock
+findApAbs = getFirstBlock
 {-
 findApAbs xs = do
 	n <- return . (findIndexOf ' ') $ xs
@@ -71,19 +67,43 @@ findIndexOf s (x:xs)
 	| s == x = 0
 	| s /= x = 1 + findIndexOf s xs
 
-findBlockEndIndex :: String -> Int
-findBlockEndIndex [] = 0
-findBlockEndIndex all@(x:xs) = 
-	if x == '(' then
-		findIndexOf ')' all
-	else
-		findIndexOf ' ' all
+findBlockEndIndex :: String -> Maybe Int
+findBlockEndIndex [] = Just 0
+findBlockEndIndex all@('(':xs) = findBracketEnd all
+findBlockEndIndex xs = (return . (findIndexOf ' ')) xs
+		
 
-getFirstBlock :: String -> (String, String)
-getFirstBlock xs = 
-	let 
-		n = findBlockEndIndex xs
-	in ((trim "() " (take n xs)), (trim "() " (drop n xs)))
+findBracketEnd :: String -> Maybe Int 
+findBracketEnd [] = Just 0
+findBracketEnd ('(':xs) = inFindBracketEnd 1 xs
+	where 
+		inFindBracketEnd _ [] = Nothing 
+		inFindBracketEnd n ('(':xs) = do
+			m <- inFindBracketEnd (n+1) xs
+			return (m+1)
+		inFindBracketEnd 1 (')':xs) = do	
+			return 1
+		inFindBracketEnd n (')':xs) = do
+			m <- inFindBracketEnd (n-1) xs
+			return (m+1)
+		inFindBracketEnd n (x:xs) = do
+			m <- inFindBracketEnd n xs
+			return (m+1)
+
+findBracketEnd xs = Just 0
+
+getFirstBlock :: String -> Maybe (String, String)
+getFirstBlock xs = do
+	n <- findBlockEndIndex xs
+	return ((removeFirstBracket (take (n+1) xs)), (removeFirstBracket (drop (n+1) xs)))
+
+removeFirstBracket :: String -> String
+removeFirstBracket all@('(':xs) = 
+	if ((head . reverse) xs) == ')' then 
+		(removeFirstBracket . reverse . tail . reverse . tail) all
+	else 
+		all
+removeFirstBracket xs = xs
 
 trim :: [Char] -> String -> String
 trim xs ys = 
