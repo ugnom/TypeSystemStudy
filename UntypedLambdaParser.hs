@@ -1,12 +1,9 @@
 import UntypedLambda
 
 -- |x.x y --> App (Lam "x" (Var "x")) Var "y"
--- |x.(z x) (|y.(w v) k)
+-- |x.(z x) (|y.(w v) k) --> App (Lam "x" (App (Var "z") (Var "x"))) (App (Lam "y" (App (Var "w") (Var"v"))) (Var "k"))
 -- x y
 parse :: String -> Maybe (LamTerm String)
-parse all@('(':xs) = do 
-	trimedStr <- removeFirstBracket all
-	parse trimedStr
 parse xs = do
 	dividedStr <- divideToBlocks xs
 	if length dividedStr == 1 then do
@@ -45,7 +42,8 @@ divideToBlocks xs = do
 findBlockEndIndex :: String -> Maybe Int
 findBlockEndIndex [] = Just 0
 findBlockEndIndex all@('(':xs) = findBracketEnd all
-findBlockEndIndex all@('|':xs) = findLambdaEnd all
+--findBlockEndIndex all@('|':xs) = findLambdaEnd all
+findBlockEndIndex all@('|':xs) = Just $ (length all) - 1
 findBlockEndIndex (' ':xs) = do 
 	n <- (findBlockEndIndex xs)
 	return (n+1)
